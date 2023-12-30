@@ -49,7 +49,7 @@ namespace ConsoleApp.Services
             Console.ReadKey();
         }
 
-        // Displays a menu of all contacts with options to navigate, view details, or go back
+        // Displays a menu of all contacts with options to navigate, view details, or go back 
         public static void ShowAllContactsMenu()
         {
             LoadContacts(); // Load to make sure everything is up to date
