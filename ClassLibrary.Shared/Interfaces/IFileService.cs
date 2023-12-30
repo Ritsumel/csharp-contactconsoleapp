@@ -1,6 +1,6 @@
 ﻿namespace ClassLibrary.Shared.Interfaces;
 
-internal interface IFileService
+public interface IFileService
 {
     /// <summary>
     /// Save content to a specified file path

@@ -6,33 +6,37 @@ namespace ClassLibrary.Shared.Services;
 
 public class ContactService : IContactService
 {
-    private readonly IFileService _fileService = new FileService();
-    private List<IContact> _Contacts;
-    private readonly string _filePath = @"c:\SCHOOL\CSHARP\Assignment\contacts.json";
+    private readonly IFileService _fileService = new FileService(); // File service for handling file operations
+    private List<IContact>? _Contacts; // List to store contacts
+    private readonly string _filePath = @"..\..\..\..\..\contacts.json"; // Path to the contacts file
 
     public ContactService()
     {
-        _Contacts = new List<IContact>();
+        _Contacts = new List<IContact>(); // Initialize the list of contacts
     }
 
-    /// <summary>
-    /// Add a Contact to a Contact list
-    /// </summary>
-    /// <param name="Contact">a Contact of type IContact</param>
-    /// <returns>Return true if successful, or false if it fails or Contact already exists</returns>
-    /// <exception cref="NotImplementedException"></exception>
+    public ContactService(IFileService fileService)
+    {
+        _fileService = fileService; // Constructor allowing injection of a custom file service
+    }
+
     public bool AddContactToList(IContact Contact)
     {
         try
         {
-            if (!_Contacts.Any(x => x.Email == Contact.Email))
+            if (_Contacts != null)
             {
-                _Contacts.Add(Contact);
+                // Check if a contact with the same email already exists
+                if (!_Contacts.Any(x => x.Email == Contact.Email))
+                {
+                    _Contacts.Add(Contact);
 
-                string json = JsonConvert.SerializeObject(_Contacts, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All });
+                    // Serialize the list of contacts to JSON and save it to the file
+                    string json = JsonConvert.SerializeObject(_Contacts, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All });
 
-                var result = _fileService.SaveContentToFile(_filePath, json);
-                return result;
+                    var result = _fileService.SaveContentToFile(_filePath, json);
+                    return result;
+                }
             }
         }
         catch (Exception ex)
@@ -42,29 +46,11 @@ public class ContactService : IContactService
         return false;
     }
 
-    public bool AddContactsToList(IEnumerable<IContact> Contacts)
-    {
-        try
-        {
-            _Contacts.AddRange(Contacts);
-
-            string json = JsonConvert.SerializeObject(_Contacts, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All });
-
-            var result = _fileService.SaveContentToFile(_filePath, json);
-            return result;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine("ContactService - AddContactsToList:: " + ex.Message);
-        }
-        return false;
-    }
-
     public IContact? GetContactFromList(string? email)
     {
         try
         {
-            GetContactsFromList();
+            GetContactsFromList(); // Ensure the list is loaded from the file
 
             var contact = _Contacts?.FirstOrDefault(x => x.Email == email);
             return contact;
@@ -80,9 +66,10 @@ public class ContactService : IContactService
     {
         try
         {
-            var content = _fileService.GetContentFromFile(_filePath);
+            var content = _fileService.GetContentFromFile(_filePath); // Get content from the file
             if (!string.IsNullOrEmpty(content))
             {
+                // Deserialize the content to a list of contacts and return it
                 _Contacts = JsonConvert.DeserializeObject<List<IContact>>(content, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All })!;
                 return _Contacts;
             }
@@ -98,11 +85,12 @@ public class ContactService : IContactService
     {
         try
         {
-            _Contacts?.Remove(contact);
+            _Contacts?.Remove(contact); // Remove the contact from the list
 
+            // Serialize the updated list of contacts to JSON and save it to the file
             string json = JsonConvert.SerializeObject(_Contacts, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All });
-
             var result = _fileService.SaveContentToFile(_filePath, json);
+
             return result;
         }
         catch (Exception ex)

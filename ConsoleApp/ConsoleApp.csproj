@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ClassLibrary.Shared\ClassLibrary.Shared.csproj" />
+    <ProjectReference Include="..\ConsoleApp.Test\ConsoleApp.Test.csproj" />
   </ItemGroup>
 
 </Project>

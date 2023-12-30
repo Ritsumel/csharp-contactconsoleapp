@@ -9,6 +9,7 @@ namespace ConsoleApp.Services
         private static readonly IContactService _ContactService = new ContactService();
         private static List<IContact> _Contacts;
 
+        // Initializes the list of contacts
         static MenuService()
         {
             _Contacts = new List<IContact>();
@@ -33,14 +34,28 @@ namespace ConsoleApp.Services
             Console.Write("Enter your address information: ");
             contact.Address = Console.ReadLine()!;
 
-            _ContactService.AddContactToList(contact);
+            bool addedSuccessfully = _ContactService.AddContactToList(contact);
+
+            if (addedSuccessfully)
+            {
+                Console.WriteLine("Contact successfully created!");
+            }
+            else
+            {
+                Console.WriteLine("Failed to create the contact.");
+            }
+
+            Console.WriteLine("Press any key to go back to the main menu...");
+            Console.ReadKey();
         }
 
+        // Displays a menu of all contacts with options to navigate, view details, or go back
         public static void ShowAllContactsMenu()
         {
             LoadContacts(); // Load to make sure everything is up to date
 
             int selectedOption = 1; // Start with the first option
+            int originalOption; // Variable to store the original selected option
 
             var contacts = _ContactService.GetContactsFromList();
             if (contacts is not null && contacts.Any())
@@ -59,7 +74,7 @@ namespace ConsoleApp.Services
 
                     Console.WriteLine("Use arrow keys to navigate, Enter to view details, or 0 to go back.");
 
-                    ConsoleKeyInfo key = Console.ReadKey();
+                    ConsoleKeyInfo key = Console.ReadKey(true);
                     switch (key.Key)
                     {
                         case ConsoleKey.UpArrow:
@@ -71,9 +86,9 @@ namespace ConsoleApp.Services
                         case ConsoleKey.Enter:
                             if (selectedOption >= 1 && selectedOption <= contacts.Count())
                             {
+                                originalOption = selectedOption; // Store the original selected option
                                 ViewContactDetails(contacts.ToList()[selectedOption - 1]);
-                                // Reset selected option after viewing details
-                                selectedOption = 1;
+                                selectedOption = originalOption; // Restore the original selected option after viewing details (mainly just for consistency purposes and being user friendly)
                             }
                             break;
                         case ConsoleKey.D0:
@@ -84,22 +99,29 @@ namespace ConsoleApp.Services
                             break;
                     }
                 }
+
+                if (!exitMenu)
+                {
+                    Console.WriteLine("Press any key to go back to the main menu...");
+                    Console.ReadKey(true);
+                }
             }
             else
             {
                 Console.WriteLine("No contacts found.");
+                Console.WriteLine("Press any key to continue...");
+                Console.ReadKey();
             }
-
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
         }
 
+        // Gets the display of name of a contact by linking the first and last names
         private static string GetContactDisplayName(IContact contact)
         {
             return $"{contact.FirstName} {contact.LastName}";
         }
 
-        private static void ViewContactDetails(IContact contact)
+        // Displays detailed information about a contact
+        private static void ViewContactDetails(IContact contact, bool showGoBackMessage = true)
         {
             Console.Clear();
             Console.WriteLine("Contact Details:");
@@ -109,10 +131,14 @@ namespace ConsoleApp.Services
             Console.WriteLine($"Email: {contact.Email}");
             Console.WriteLine($"Phone Number: {contact.PhoneNumber}");
 
-            Console.WriteLine("Press any key to go back to the list of contacts...");
-            Console.ReadKey();
+            if (showGoBackMessage)
+            {
+                Console.WriteLine("Press any key to go back to the list of contacts...");
+                Console.ReadKey();
+            }
         }
 
+        // Loads contacts from the contact service
         public static void LoadContacts()
         {
             try
@@ -125,6 +151,7 @@ namespace ConsoleApp.Services
             }
         }
 
+        // Handles the menu option for removing a contact by email
         public static void RemoveContactMenu()
         {
             Console.Write("Enter the email of the contact to remove: ");
@@ -135,7 +162,7 @@ namespace ConsoleApp.Services
             if (contactToRemove != null)
             {
                 Console.WriteLine("Contact found:");
-                ViewContactDetails(contactToRemove);
+                ViewContactDetails(contactToRemove, false);
 
                 Console.Write("Are you sure you want to remove this contact? (Y/N): ");
                 string confirm = Console.ReadLine()?.Trim().ToUpper()!;
@@ -162,11 +189,11 @@ namespace ConsoleApp.Services
                 Console.WriteLine("Contact not found.");
             }
 
-            Console.WriteLine("Press any key to continue...");
+            Console.WriteLine("Press any key to go back to the main menu...");
             Console.ReadKey();
         }
 
-
+        // Displays the main menu with options to add, show, remove contacts or to exit the program
         public static void MainMenu()
         {
             int selectedOption = 1;
